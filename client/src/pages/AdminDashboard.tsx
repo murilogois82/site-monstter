@@ -1,4 +1,3 @@
-import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import Layout from "@/components/Layout";
@@ -15,6 +14,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useViewMode } from "@/contexts/ViewModeContext";
+import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading, logout } = useLocalAuth();

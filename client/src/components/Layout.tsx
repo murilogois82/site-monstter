@@ -1,8 +1,52 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Phone, Mail, MapPin } from "lucide-react";
+import { Menu, X, Phone, Mail, MapPin, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
+
+function UserMenu() {
+  const { user, isAuthenticated, logout } = useLocalAuth();
+  const [, setLocation] = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!isAuthenticated || !user) {
+    return (
+      <Link href="/simple-login">
+        <Button variant="outline" className="text-sm">
+          Login
+        </Button>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="relative group">
+      <button className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-primary transition-colors">
+        <User className="w-4 h-4" />
+        {user.name}
+      </button>
+      <div className="absolute right-0 mt-2 w-48 bg-background border border-white/10 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+        <Link href="/my-account">
+          <div className="px-4 py-2 hover:bg-white/5 cursor-pointer flex items-center gap-2 border-b border-white/10">
+            <User className="w-4 h-4" />
+            Minha Conta
+          </div>
+        </Link>
+        <button
+          onClick={() => {
+            logout();
+            setLocation("/");
+          }}
+          className="w-full text-left px-4 py-2 hover:bg-white/5 cursor-pointer flex items-center gap-2 text-red-500 hover:text-red-400"
+        >
+          <LogOut className="w-4 h-4" />
+          Sair
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -67,6 +111,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               </Link>
             ))}
+            <UserMenu />
             <Link href="/contato">
               <Button variant="default" className="bg-primary hover:bg-red-700 text-white font-bold rounded-none px-6 border border-transparent hover:border-red-500 hover:shadow-[0_0_15px_rgba(255,0,0,0.5)] transition-all duration-300">
                 Fale Conosco

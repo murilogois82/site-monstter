@@ -420,3 +420,14 @@
 - [x] Configurar envio de e-mail com link de reset
 - [x] Testar fluxo completo de recuperacao
 - [x] Documentar sistema de recuperacao (RECUPERACAO_SENHA.md)
+
+
+## Autenticação Local e Página de Perfil
+
+- [x] Corrigir autenticações em todas as páginas restritas para usar useLocalAuth
+- [x] Remover dependências de tRPC em páginas protegidas
+- [x] Criar página MyAccount.tsx com visualização de perfil
+- [x] Implementar edição de dados de perfil (nome, email, senha)
+- [x] Adicionar link "Minha Conta" no menu/header
+- [x] Testar fluxo de edição de perfil
+- [x] Validar mudança de senha
