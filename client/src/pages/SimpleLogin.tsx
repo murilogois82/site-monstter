@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+
+// Usuários pré-configurados (em produção, isso viria de um banco de dados)
+const USERS_DB = [
+  { id: "1", username: "admin", password: "admin", role: "admin", name: "Administrador" },
+  { id: "2", username: "manager", password: "manager", role: "manager", name: "Gerenciador" },
+  { id: "3", username: "partner", password: "partner", role: "partner", name: "Parceiro" },
+  { id: "4", username: "user", password: "user", role: "user", name: "Usuário" },
+];
 
 export default function SimpleLogin() {
   const [username, setUsername] = useState("");
@@ -14,7 +21,29 @@ export default function SimpleLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [, setLocation] = useLocation();
 
-  const loginMutation = trpc.auth.loginLocal.useMutation();
+  // Verificar se já está logado
+  useEffect(() => {
+    const currentUser = localStorage.getItem("currentUser");
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        // Redirecionar baseado no role
+        switch (user.role) {
+          case "admin":
+          case "manager":
+            setLocation("/admin");
+            break;
+          case "partner":
+            setLocation("/partner-dashboard");
+            break;
+          default:
+            setLocation("/");
+        }
+      } catch (err) {
+        console.error("Erro ao parsear usuário:", err);
+      }
+    }
+  }, [setLocation]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,26 +51,51 @@ export default function SimpleLogin() {
     setIsLoading(true);
 
     try {
-      console.log("[Login] Attempting login with username:", username);
-      
-      const result = await loginMutation.mutateAsync({
-        username,
-        password,
-      });
+      // Simular delay de rede
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      console.log("[Login] Login successful:", result);
+      // Verificar credenciais
+      const user = USERS_DB.find(
+        (u) => u.username === username && u.password === password
+      );
 
-      if (result.success) {
-        // Redirect to admin dashboard
-        console.log("[Login] Redirecting to admin dashboard");
-        setLocation("/admin");
-      } else {
-        setError("Falha ao fazer login. Tente novamente.");
+      if (!user) {
+        setError("Usuário ou senha inválidos");
+        setIsLoading(false);
+        return;
+      }
+
+      // Salvar usuário no localStorage
+      const userData = {
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        name: user.name,
+        loginTime: new Date().toISOString(),
+      };
+
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+      localStorage.setItem("isAuthenticated", "true");
+
+      console.log("[Login] Login bem-sucedido:", userData);
+
+      // Redirecionar baseado no role
+      switch (user.role) {
+        case "admin":
+        case "manager":
+          setLocation("/admin");
+          break;
+        case "partner":
+          setLocation("/partner-dashboard");
+          break;
+        case "user":
+        default:
+          setLocation("/");
+          break;
       }
     } catch (err: any) {
-      console.error("[Login] Error:", err);
-      const errorMessage = err?.message || "Falha ao fazer login. Verifique suas credenciais.";
-      setError(errorMessage);
+      console.error("[Login] Erro:", err);
+      setError("Erro ao fazer login. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -131,14 +185,35 @@ export default function SimpleLogin() {
 
           <div className="mt-6 space-y-3">
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs font-semibold text-blue-900 mb-2">Credenciais de Teste:</p>
-              <div className="space-y-1 text-xs text-blue-800">
-                <p>
-                  Usuário: <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
-                </p>
-                <p>
-                  Senha: <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
-                </p>
+              <p className="text-xs font-semibold text-blue-900 mb-3">Credenciais de Teste:</p>
+              <div className="space-y-2 text-xs text-blue-800">
+                <div>
+                  <p className="font-medium mb-1">Admin:</p>
+                  <p>
+                    Usuário: <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+                  </p>
+                  <p>
+                    Senha: <code className="font-mono bg-blue-100 px-2 py-1 rounded">admin</code>
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">Manager:</p>
+                  <p>
+                    Usuário: <code className="font-mono bg-blue-100 px-2 py-1 rounded">manager</code>
+                  </p>
+                  <p>
+                    Senha: <code className="font-mono bg-blue-100 px-2 py-1 rounded">manager</code>
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">Partner:</p>
+                  <p>
+                    Usuário: <code className="font-mono bg-blue-100 px-2 py-1 rounded">partner</code>
+                  </p>
+                  <p>
+                    Senha: <code className="font-mono bg-blue-100 px-2 py-1 rounded">partner</code>
+                  </p>
+                </div>
               </div>
             </div>
 

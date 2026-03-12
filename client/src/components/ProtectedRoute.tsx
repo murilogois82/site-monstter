@@ -1,10 +1,10 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import Layout from "./Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { AlertCircle, Lock } from "lucide-react";
+import { AlertCircle, Lock, Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -23,11 +23,17 @@ export default function ProtectedRoute({
   requiredRoles = [],
   fallback,
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/simple-login");
+    }
+  }, [isLoading, isAuthenticated, setLocation]);
+
   // Ainda carregando
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center bg-background">
@@ -42,6 +48,7 @@ export default function ProtectedRoute({
 
   // Não autenticado
   if (!isAuthenticated || !user) {
+    if (isLoading) return null;
     return (
       fallback || (
         <Layout>
@@ -58,7 +65,7 @@ export default function ProtectedRoute({
                   Você precisa estar autenticado para acessar esta página.
                 </p>
                 <Button
-                  onClick={() => setLocation("/login")}
+                  onClick={() => setLocation("/simple-login")}
                   className="w-full bg-red-600 hover:bg-red-700"
                 >
                   Ir para Login

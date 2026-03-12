@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 import Layout from "@/components/Layout";
@@ -17,18 +17,18 @@ import {
 import { useViewMode } from "@/contexts/ViewModeContext";
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated, loading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useLocalAuth();
   const { viewMode, toggleViewMode } = useViewMode();
   const [, setLocation] = useLocation();
 
   // Redirect if not authenticated or not admin/manager
   useEffect(() => {
-    if (!loading && (!isAuthenticated || (user?.role !== "admin" && user?.role !== "manager"))) {
-      setLocation("/login");
+    if (!isLoading && (!isAuthenticated || (user?.role !== "admin" && user?.role !== "manager"))) {
+      setLocation("/simple-login");
     }
-  }, [isAuthenticated, user, loading, setLocation]);
+  }, [isAuthenticated, user, isLoading, setLocation]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center bg-background">
@@ -42,6 +42,7 @@ export default function AdminDashboard() {
   }
 
   if (!isAuthenticated || !user) {
+    if (isLoading) return null;
     return null; // Will redirect via useEffect
   }
 
@@ -127,7 +128,7 @@ export default function AdminDashboard() {
                 Dashboard de Administração
               </h1>
               <p className="text-gray-400">
-                Bem-vindo, {user.name || user.email}
+                Bem-vindo, {user.name}
               </p>
               <div className="mt-2 text-sm">
                 <span className={`px-3 py-1 rounded-full ${viewMode === 'admin' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-purple-500/20 text-purple-400 border border-purple-500/50'}`}>

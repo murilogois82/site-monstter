@@ -35,8 +35,9 @@ function Router() {
       <Route path={"/servicos"} component={Services} />
       <Route path={"/contato"} component={Contact} />
       <Route path={"/service-order-form"} component={ServiceOrderForm} />
-      <Route path={"/partners/dashboard"} component={PartnerDashboard} />
-      <Route path={"/partners/service-orders"} component={PartnerServiceOrders} />
+      <Route path={"\partners/dashboard"} component={PartnerDashboard} />
+      <Route path={"\partner-dashboard"} component={PartnerDashboard} />
+      <Route path={"\partners/service-orders"} component={PartnerServiceOrders} />
       <Route path={"/admin/service-orders"} component={AdminServiceOrders} />
       <Route path={"/admin/payments-dashboard"} component={PaymentsDashboard} />
       <Route path={"/admin/users"} component={UserManagement} />
