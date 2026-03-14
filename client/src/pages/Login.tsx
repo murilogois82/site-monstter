@@ -7,7 +7,7 @@ import { getLoginUrl } from "@/const";
 import Layout from "@/components/Layout";
 
 export default function Login() {
-  const { user, isAuthenticated, loading } = useLocalAuth();
+  const { user, isAuthenticated, isLoading: loading } = useLocalAuth();
   const [, setLocation] = useLocation();
 
   // Redirect based on role if already authenticated
