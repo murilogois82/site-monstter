@@ -58,6 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: "Serviços", path: "/servicos" },
     { label: "Contato", path: "/contato" },
     { label: "Parceiros", path: "/partners/service-orders" },
+    { label: "Administrador", path: "/area-restrita" },
   ];
 
   return (

@@ -24,6 +24,7 @@ import SimpleLogin from "./pages/SimpleLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import CalendarPage from "./pages/CalendarPage";
 import MyAccount from "./pages/MyAccount";
+import RestrictedArea from "./pages/RestrictedArea";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -49,6 +50,7 @@ function Router() {
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/calendar"} component={CalendarPage} />
       <Route path={"/my-account"} component={MyAccount} />
+      <Route path={"/area-restrita"} component={RestrictedArea} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
