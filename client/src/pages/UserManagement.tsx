@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import Layout from "@/components/Layout";
 import AdminNav from "@/components/AdminNav";
@@ -38,8 +38,16 @@ import { Search, Plus, Edit2, Download, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function UserManagement() {
-  const { user, isAuthenticated } = useLocalAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
+
+  // Redirecionar se não autenticado ou sem permissão
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "admin")) {
+      setLocation("/simple-login");
+    }
+  }, [isAuthenticated, user, isLoading, setLocation]);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -51,37 +59,13 @@ export default function UserManagement() {
     role: "user" as "user" | "admin" | "partner" | "manager",
   });
 
-  const { data: users, isLoading, refetch } = trpc.userManagement.listAll.useQuery(undefined, {
+  const { data: users, isLoading: isLoadingUsers, refetch } = trpc.userManagement.listAll.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
   const createUserMutation = trpc.userManagement.create.useMutation();
   const updateRoleMutation = trpc.userManagement.updateRole.useMutation();
 
-  if (!isAuthenticated) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Card className="w-full max-w-md border-red-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                Acesso Restrito
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70 mb-4">
-                Você precisa estar autenticado para acessar esta página.
-              </p>
-              <Button onClick={() => setLocation("/")} className="w-full">
-                Voltar ao Início
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
   if (user?.role !== "admin") {
     return (
@@ -193,6 +177,20 @@ export default function UserManagement() {
     window.URL.revokeObjectURL(url);
     toast.success("Relatório exportado com sucesso!");
   };
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Filtrar usuários
   const filteredUsers = users?.filter((u) => {

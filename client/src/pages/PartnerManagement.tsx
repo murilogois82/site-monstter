@@ -37,8 +37,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function PartnerManagement() {
-  const { user, isAuthenticated } = useLocalAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
+
+  // Redirecionar se não autenticado ou sem permissão
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || (user?.role !== "admin" && user?.role !== "manager"))) {
+      setLocation("/simple-login");
+    }
+  }, [isAuthenticated, user, isLoading, setLocation]);
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
@@ -55,7 +63,7 @@ export default function PartnerManagement() {
     notes: "",
   });
 
-  const { data: partners, isLoading, refetch } = trpc.partner.listAll.useQuery(undefined, {
+  const { data: partners, isLoading: isLoadingPartners, refetch } = trpc.partner.listAll.useQuery(undefined, {
     enabled: isAuthenticated && (user?.role === "admin" || user?.role === "manager"),
   });
 
@@ -63,49 +71,7 @@ export default function PartnerManagement() {
   const updatePartnerMutation = trpc.partner.update.useMutation();
   const deletePartnerMutation = trpc.partner.delete.useMutation();
 
-  if (!isAuthenticated) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Acesso Restrito</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70 mb-4">
-                Você precisa estar autenticado para acessar esta página.
-              </p>
-              <Button onClick={() => setLocation("/")} className="w-full">
-                Voltar ao Início
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
-  if (user?.role !== "admin" && user?.role !== "manager") {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Acesso Negado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70 mb-4">
-                Apenas administradores e gestores podem acessar esta página.
-              </p>
-              <Button onClick={() => setLocation("/")} className="w-full">
-                Voltar ao Início
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
   const handleCreatePartner = async () => {
     if (!newPartner.name || !newPartner.email) {
@@ -194,6 +160,20 @@ export default function PartnerManagement() {
     });
     setIsEditDialogOpen(true);
   };
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

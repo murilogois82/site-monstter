@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import Layout from "@/components/Layout";
 import { trpc } from "@/lib/trpc";
@@ -25,34 +25,23 @@ import {
 } from "@/components/ui/select";
 
 export default function PartnerServiceOrders() {
-  const { user, isAuthenticated } = useLocalAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
+
+  // Redirecionar se não autenticado ou sem permissão
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || user?.role !== "partner")) {
+      setLocation("/simple-login");
+    }
+  }, [isAuthenticated, user, isLoading, setLocation]);
+
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [clientFilter, setClientFilter] = useState<string>("");
 
-  const { data: orders, isLoading, refetch } = trpc.serviceOrder.listMine.useQuery();
+  const { data: orders, isLoading: isLoadingOrders, refetch } = trpc.serviceOrder.listMine.useQuery();
   const sendOSMutation = trpc.serviceOrder.send.useMutation();
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acesso Restrito</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground/70 mb-4">
-              Você precisa estar autenticado para acessar esta página.
-            </p>
-            <Button onClick={() => setLocation("/")} className="w-full">
-              Voltar ao Início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -84,6 +73,20 @@ export default function PartnerServiceOrders() {
     const matchesClient = !clientFilter || order.clientName.toLowerCase().includes(clientFilter.toLowerCase());
     return matchesStatus && matchesDate && matchesClient;
   });
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

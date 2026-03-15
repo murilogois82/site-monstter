@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import Layout from "@/components/Layout";
 import AdminNav from "@/components/AdminNav";
@@ -38,9 +38,16 @@ import { Textarea } from "@/components/ui/textarea";
 import ClientImport from "@/components/ClientImport";
 
 export default function ClientManagement() {
-  const { user, isAuthenticated } = useLocalAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  // Redirecionar se não autenticado ou sem permissão
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || (user?.role !== "admin" && user?.role !== "manager"))) {
+      setLocation("/simple-login");
+    }
+  }, [isAuthenticated, user, isLoading, setLocation]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [newClient, setNewClient] = useState({
@@ -58,7 +65,7 @@ export default function ClientManagement() {
     notes: "",
   });
 
-  const { data: clients, isLoading, refetch } = trpc.clientManagement.listAll.useQuery(undefined, {
+  const { data: clients, isLoading: isLoadingClients, refetch } = trpc.clientManagement.listAll.useQuery(undefined, {
     enabled: isAuthenticated && (user?.role === "admin" || user?.role === "manager"),
   });
 
@@ -66,49 +73,7 @@ export default function ClientManagement() {
   const updateClientMutation = trpc.clientManagement.update.useMutation();
   const deleteClientMutation = trpc.clientManagement.delete.useMutation();
 
-  if (!isAuthenticated) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Acesso Restrito</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70 mb-4">
-                Você precisa estar autenticado para acessar esta página.
-              </p>
-              <Button onClick={() => setLocation("/")} className="w-full">
-                Voltar ao Início
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
-  if (user?.role !== "admin" && user?.role !== "manager") {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Acesso Negado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-foreground/70 mb-4">
-                Apenas administradores e gestores podem acessar esta página.
-              </p>
-              <Button onClick={() => setLocation("/")} className="w-full">
-                Voltar ao Início
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
 
   const handleCreateClient = async () => {
     if (!newClient.name || !newClient.email) {
@@ -176,6 +141,20 @@ export default function ClientManagement() {
     setSelectedClient({ ...client });
     setIsEditDialogOpen(true);
   };
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

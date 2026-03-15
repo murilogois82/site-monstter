@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocalAuth } from "@/_core/hooks/useLocalAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,16 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function ServiceOrderForm() {
-  const { user, isAuthenticated } = useLocalAuth();
+  const { user, isAuthenticated, isLoading } = useLocalAuth();
   const [, setLocation] = useLocation();
+
+  // Redirecionar se não autenticado
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/simple-login");
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
   const [loading, setLoading] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -62,25 +70,6 @@ export default function ServiceOrderForm() {
     }
   }, [formData.osNumber]);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Acesso Restrito</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-foreground/70 mb-4">
-              Você precisa estar autenticado para acessar esta página.
-            </p>
-            <Button onClick={() => setLocation("/")} className="w-full">
-              Voltar ao Início
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -269,6 +258,18 @@ export default function ServiceOrderForm() {
   };
 
   const totalHours = calculateTotalHours();
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
