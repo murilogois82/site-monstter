@@ -18,7 +18,9 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  // Desabilitado: usar autenticação local ao invés de OAuth
+  // window.location.href = getLoginUrl();
+  console.warn("[Auth] Autenticação necessária. Use a autenticação local.");
 };
 
 queryClient.getQueryCache().subscribe(event => {
