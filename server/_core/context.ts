@@ -1,6 +1,7 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
 import { sdk } from "./sdk";
+import { COOKIE_NAME } from "@shared/const";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -13,6 +14,23 @@ export async function createContext(
 ): Promise<TrpcContext> {
   let user: User | null = null;
 
+  // Primeiro, tenta autenticação local via cookie
+  try {
+    const cookieValue = opts.req.cookies[COOKIE_NAME];
+    if (cookieValue) {
+      user = JSON.parse(cookieValue) as User;
+      console.debug("[Auth] Local auth successful:", user.username);
+      return {
+        req: opts.req,
+        res: opts.res,
+        user,
+      };
+    }
+  } catch (error) {
+    console.debug("[Auth] Local auth failed:", error instanceof Error ? error.message : "Unknown error");
+  }
+
+  // Se não houver autenticação local, tenta OAuth (para compatibilidade)
   try {
     user = await sdk.authenticateRequest(opts.req);
   } catch (error) {
