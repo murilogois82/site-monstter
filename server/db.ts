@@ -20,47 +20,7 @@ export async function getDb() {
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<{ id: number } | undefined> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    const result = await db
-      .insert(users)
-      .values(values)
-      .onDuplicateKeyUpdate({ set: updateSet });
-
-    return { id: Number((result as any).insertId) };
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
-}
+// upsertUser removed - use createUser or updateUser instead
 
 export async function getAllUsers(): Promise<InsertUser[]> {
   const db = await getDb();
@@ -93,18 +53,18 @@ export async function getUserById(id: number): Promise<InsertUser | undefined> {
   }
 }
 
-export async function getUserByOpenId(openId: string): Promise<InsertUser | undefined> {
+export async function getUserByUsername(username: string): Promise<InsertUser | undefined> {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user by openId: database not available");
+    console.warn("[Database] Cannot get user by username: database not available");
     return;
   }
 
   try {
-    const result = await db.select().from(users).where(eq(users.openId, openId));
+    const result = await db.select().from(users).where(eq(users.username, username));
     return result[0];
   } catch (error) {
-    console.error("[Database] Failed to get user by openId:", error);
+    console.error("[Database] Failed to get user by username:", error);
     throw error;
   }
 }
@@ -783,35 +743,7 @@ export async function updateUserPassword(userId: number, newPassword: string) {
   }
 }
 
-/**
- * Get user by username
- */
-export async function getUserByUsername(username: string) {
-  const db = await getDb();
-  if (!db) {
-    throw new Error("Database not available");
-  }
-
-  try {
-    const conn = await (db as any).client.getConnection();
-    const [rows] = await conn.execute(
-      "SELECT * FROM users WHERE username = ?",
-      [username]
-    );
-    conn.release();
-
-    const user = (rows as any[])[0];
-    if (!user) {
-      return null;
-    }
-
-    const { passwordHash, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  } catch (error) {
-    console.error("[Auth] Get user by username failed:", error);
-    throw error;
-  }
-}
+// Removed duplicate getUserByUsername - see line 56
 
 
 // ==================== PASSWORD RESET ====================
@@ -841,12 +773,10 @@ export async function createPasswordResetToken(userId: number, expiresInHours: n
     const token = generateResetToken();
     const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
 
-    const conn = await (db as any).client.getConnection();
-    await conn.execute(
-      "INSERT INTO password_reset_tokens (userId, token, expiresAt) VALUES (?, ?, ?)",
-      [userId, token, expiresAt]
-    );
-    conn.release();
+    await db.update(users).set({
+      resetToken: token,
+      resetTokenExpires: expiresAt,
+    }).where(eq(users.id, userId));
 
     return { token, expiresAt };
   } catch (error) {
@@ -865,27 +795,24 @@ export async function validateResetToken(token: string) {
   }
 
   try {
-    const conn = await (db as any).client.getConnection();
-    const [rows] = await conn.execute(
-      "SELECT * FROM password_reset_tokens WHERE token = ? AND expiresAt > NOW() AND usedAt IS NULL",
-      [token]
+    const allUsers = await db.select().from(users);
+    const user = allUsers.find(u => 
+      u.resetToken === token && 
+      u.resetTokenExpires && 
+      u.resetTokenExpires > new Date()
     );
-    conn.release();
-
-    const resetToken = (rows as any[])[0];
-    if (!resetToken) {
-      throw new Error("Token invalido ou expirado");
+    if (!user) {
+      throw new Error("Token inválido ou expirado");
     }
 
-    return resetToken;
+    return user;
   } catch (error) {
     console.error("[PasswordReset] Failed to validate token:", error);
     throw error;
   }
 }
-
 /**
- * Reset password using a valid token
+ * Reset password with a valid token
  */
 export async function resetPasswordWithToken(token: string, newPassword: string) {
   const db = await getDb();
@@ -894,34 +821,20 @@ export async function resetPasswordWithToken(token: string, newPassword: string)
   }
 
   try {
-    // Validate token
-    const resetToken = await validateResetToken(token);
-
-    // Hash new password
+    const user = await validateResetToken(token);
     const passwordHash = await hashPassword(newPassword);
 
-    // Update user password
-    const conn = await (db as any).client.getConnection();
-    await conn.execute(
-      "UPDATE users SET passwordHash = ? WHERE id = ?",
-      [passwordHash, resetToken.userId]
-    );
+    await db.update(users).set({
+      passwordHash,
+      resetToken: null,
+      resetTokenExpires: null,
+    }).where(eq(users.id, user.id));
 
-    // Mark token as used
-    await conn.execute(
-      "UPDATE password_reset_tokens SET usedAt = NOW() WHERE id = ?",
-      [resetToken.id]
-    );
-    conn.release();
+    // Get the updated user
+    const result = await db.select().from(users).where(eq(users.id, user.id));
+    const updatedUser = result[0];
 
-    // Get updated user
-    const [userRows] = await conn.execute(
-      "SELECT id, username, name, email, role FROM users WHERE id = ?",
-      [resetToken.userId]
-    );
-    conn.release();
-
-    return (userRows as any[])[0];
+    return updatedUser;
   } catch (error) {
     console.error("[PasswordReset] Failed to reset password:", error);
     throw error;
@@ -938,14 +851,9 @@ export async function requestPasswordReset(email: string) {
   }
 
   try {
-    const conn = await (db as any).client.getConnection();
-    const [rows] = await conn.execute(
-      "SELECT id, email FROM users WHERE email = ?",
-      [email]
-    );
-    conn.release();
-
-    const user = (rows as any[])[0];
+    const result = await db.select().from(users).where(eq(users.email, email));
+    const user = result[0];
+    
     if (!user) {
       // Don't reveal if email exists
       return { success: true, message: "Se o e-mail existe, um link de reset foi enviado" };

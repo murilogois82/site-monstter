@@ -160,7 +160,7 @@ export default function UserManagement() {
         u.name || "-",
         u.email || "-",
         u.role,
-        u.loginMethod || "OAuth",
+        "Local",
         new Date(u.createdAt || 0).toLocaleDateString("pt-BR"),
         new Date(u.lastSignedIn || 0).toLocaleDateString("pt-BR"),
       ]),
@@ -362,7 +362,7 @@ export default function UserManagement() {
                           <TableCell>{getRoleBadge(u.role || "user")}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
-                              {u.loginMethod || "OAuth"}
+                              Local
                             </Badge>
                           </TableCell>
                           <TableCell className="text-sm text-gray-600">

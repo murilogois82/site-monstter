@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM users WHERE 1=1;\nINSERT INTO users (username, passwordHash, name, email, role, status, createdAt, updatedAt) VALUES \n('admin', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Administrador', 'admin@monstter.com.br', 'admin', 'active', NOW(), NOW()),\n('manager', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Gerente', 'manager@monstter.com.br', 'manager', 'active', NOW(), NOW()),\n('partner', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Parceiro', 'partner@monstter.com.br', 'partner', 'active', NOW(), NOW()),\n('user', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Usuário', 'user@monstter.com.br', 'user', 'active', NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4XjEEts3MFeNP3d.root --database VHJr573C49poDxnZCnBs44 --execute DELETE FROM users WHERE 1=1;\nINSERT INTO users (username, passwordHash, name, email, role, status, createdAt, updatedAt) VALUES \n('admin', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Administrador', 'admin@monstter.com.br', 'admin', 'active', NOW(), NOW()),\n('manager', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Gerente', 'manager@monstter.com.br', 'manager', 'active', NOW(), NOW()),\n('partner', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Parceiro', 'partner@monstter.com.br', 'partner', 'active', NOW(), NOW()),\n('user', '$2b$10$YIjlrTxF8.tRQSvN8cSZOO1.3yXvRQKvvXvQ7X7X7X7X7X7X7X7X7', 'Usuário', 'user@monstter.com.br', 'user', 'active', NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 67
+}

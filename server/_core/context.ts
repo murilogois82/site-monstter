@@ -16,8 +16,14 @@ export async function createContext(
 
   // Primeiro, tenta autenticação local via cookie
   try {
-    const cookieValue = opts.req.cookies[COOKIE_NAME];
+    let cookieValue = opts.req.cookies[COOKIE_NAME];
     if (cookieValue) {
+      // Decodificar cookie URL-encoded se necessário
+      try {
+        cookieValue = decodeURIComponent(cookieValue);
+      } catch (e) {
+        // Se não for URL-encoded, continuar com o valor original
+      }
       user = JSON.parse(cookieValue) as User;
       console.debug("[Auth] Local auth successful:", user.username);
       return {

@@ -72,7 +72,7 @@ export const appRouter = router({
       .query(async ({ input }) => {
         try {
           const resetToken = await validateResetToken(input.token);
-          return { valid: true, userId: resetToken.userId };
+          return { valid: true, userId: resetToken.id };
         } catch (error) {
           return { valid: false };
         }
@@ -663,8 +663,12 @@ export const appRouter = router({
           throw new Error("Acesso negado");
         }
 
+        const username = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const hashedPassword = await hashPassword('password123');
+        
         const result = await createUser({
-          openId: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          username,
+          passwordHash: hashedPassword,
           name: input.name,
           email: input.email,
           role: input.role,

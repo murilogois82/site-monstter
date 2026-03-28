@@ -7,22 +7,18 @@ import { relations } from "drizzle-orm";
  * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }),
-  username: varchar("username", { length: 255 }).unique(),
-  passwordHash: varchar("passwordHash", { length: 255 }),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
+  username: varchar("username", { length: 255 }).unique().notNull(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  name: text("name").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
   role: mysqlEnum("role", ["user", "admin", "partner", "manager"]).default("user").notNull(),
+  status: mysqlEnum("status", ["active", "inactive"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  lastSignedIn: timestamp("lastSignedIn"),
+  resetToken: varchar("resetToken", { length: 255 }),
+  resetTokenExpires: timestamp("resetTokenExpires"),
 });
 
 export type User = typeof users.$inferSelect;

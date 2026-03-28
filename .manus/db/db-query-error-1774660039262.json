@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE users DROP COLUMN IF EXISTS openId, DROP COLUMN IF EXISTS loginMethod;\nALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active', 'inactive') DEFAULT 'active' NOT NULL AFTER role;\nALTER TABLE users ADD COLUMN IF NOT EXISTS resetToken VARCHAR(255) AFTER lastSignedIn;\nALTER TABLE users ADD COLUMN IF NOT EXISTS resetTokenExpires TIMESTAMP AFTER resetToken;\nALTER TABLE users MODIFY COLUMN lastSignedIn TIMESTAMP NULL DEFAULT NULL;\nALTER TABLE users MODIFY COLUMN passwordHash VARCHAR(255) NOT NULL;\nALTER TABLE users MODIFY COLUMN username VARCHAR(255) NOT NULL UNIQUE;\nALTER TABLE users MODIFY COLUMN name TEXT NOT NULL;\nALTER TABLE users MODIFY COLUMN email VARCHAR(320) NOT NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4XjEEts3MFeNP3d.root --database VHJr573C49poDxnZCnBs44 --execute ALTER TABLE users DROP COLUMN IF EXISTS openId, DROP COLUMN IF EXISTS loginMethod;\nALTER TABLE users ADD COLUMN IF NOT EXISTS status ENUM('active', 'inactive') DEFAULT 'active' NOT NULL AFTER role;\nALTER TABLE users ADD COLUMN IF NOT EXISTS resetToken VARCHAR(255) AFTER lastSignedIn;\nALTER TABLE users ADD COLUMN IF NOT EXISTS resetTokenExpires TIMESTAMP AFTER resetToken;\nALTER TABLE users MODIFY COLUMN lastSignedIn TIMESTAMP NULL DEFAULT NULL;\nALTER TABLE users MODIFY COLUMN passwordHash VARCHAR(255) NOT NULL;\nALTER TABLE users MODIFY COLUMN username VARCHAR(255) NOT NULL UNIQUE;\nALTER TABLE users MODIFY COLUMN name TEXT NOT NULL;\nALTER TABLE users MODIFY COLUMN email VARCHAR(320) NOT NULL;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 8200 (HY000) at line 7: can't change column constraint (UNIQUE KEY)"
+  ]
+}

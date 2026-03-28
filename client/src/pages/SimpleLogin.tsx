@@ -51,33 +51,30 @@ export default function SimpleLogin() {
     setIsLoading(true);
 
     try {
-      // Simular delay de rede
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Fazer login via servidor para salvar cookie HTTP
+      const response = await fetch("/api/local-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
 
-      // Verificar credenciais
-      const user = USERS_DB.find(
-        (u) => u.username === username && u.password === password
-      );
-
-      if (!user) {
-        setError("Usuário ou senha inválidos");
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Usuário ou senha inválidos");
         setIsLoading(false);
         return;
       }
 
-      // Salvar usuário no localStorage
-      const userData = {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        name: user.name,
-        loginTime: new Date().toISOString(),
-      };
+      const { user } = await response.json();
 
-      localStorage.setItem("currentUser", JSON.stringify(userData));
+      // Salvar usuário no localStorage
+      localStorage.setItem("currentUser", JSON.stringify(user));
       localStorage.setItem("isAuthenticated", "true");
 
-      console.log("[Login] Login bem-sucedido:", userData);
+      console.log("[Login] Login bem-sucedido:", user);
 
       // Redirecionar baseado no role
       switch (user.role) {

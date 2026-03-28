@@ -25,6 +25,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CalendarPage from "./pages/CalendarPage";
 import MyAccount from "./pages/MyAccount";
 import RestrictedArea from "./pages/RestrictedArea";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -38,8 +39,8 @@ function Router() {
       <Route path={"/contato"} component={Contact} />
       <Route path={"/service-order-form"} component={ServiceOrderForm} />
       <Route path={"\partners/dashboard"} component={PartnerDashboard} />
-      <Route path={"\partner-dashboard"} component={PartnerDashboard} />
-      <Route path={"\partners/service-orders"} component={PartnerServiceOrders} />
+      <Route path={"\partner-dashboard"} component={PartnerDashboard} />      <Route path={"\\partners/service-orders"} component={PartnerServiceOrders} />
+      <Route path={"/forgot-password"} component={ForgotPassword} />
       <Route path={"/admin/service-orders"} component={AdminServiceOrders} />
       <Route path={"/admin/payments-dashboard"} component={PaymentsDashboard} />
       <Route path={"/admin/users"} component={UserManagement} />

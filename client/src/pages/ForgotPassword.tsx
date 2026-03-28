@@ -105,11 +105,9 @@ export default function ForgotPassword() {
           )}
 
           <Link href="/login">
-            <Button variant="ghost" className="w-full" asChild>
-              <a className="flex items-center justify-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Voltar para Login
-              </a>
+            <Button variant="ghost" className="w-full flex items-center justify-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Voltar para Login
             </Button>
           </Link>
         </CardContent>
