@@ -431,3 +431,23 @@
 - [x] Adicionar link "Minha Conta" no menu/header
 - [x] Testar fluxo de edição de perfil
 - [x] Validar mudança de senha
+
+## Validações e Melhorias no Formulário de Ordem de Serviço
+
+- [ ] Adicionar validação de campos obrigatórios no formulário
+- [ ] Implementar validação de datas (data de término > data de início)
+- [ ] Adicionar validação de intervalo (não pode ser negativo)
+- [ ] Implementar feedback visual de erros de validação
+- [ ] Adicionar confirmação antes de enviar formulário
+- [ ] Implementar loading state durante envio
+- [ ] Adicionar mensagem de sucesso após criação de OS
+- [ ] Testar todas as validações
+
+## Publicação do Projeto
+
+- [ ] Criar checkpoint final com todas as melhorias
+- [ ] Verificar status do servidor de desenvolvimento
+- [ ] Testar fluxo completo de login e criação de OS
+- [ ] Publicar projeto para acesso público
+- [ ] Gerar URL pública do projeto
+- [ ] Testar acesso via URL pública

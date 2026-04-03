@@ -29,6 +29,8 @@ export default function ServiceOrderForm() {
 
   const [loading, setLoading] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [formData, setFormData] = useState({
     osNumber: "",
     clientName: "",
@@ -70,13 +72,19 @@ export default function ServiceOrderForm() {
     }
   }, [formData.osNumber]);
 
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    // Limpar erro deste campo quando o usuário começar a digitar
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleClientSelect = (clientId: string) => {
@@ -89,9 +97,60 @@ export default function ServiceOrderForm() {
         clientName: selectedClient.name || "",
         clientEmail: selectedClient.email || "",
       }));
+      // Limpar erro de cliente
+      if (errors.clientId) {
+        setErrors((prev) => ({
+          ...prev,
+          clientId: "",
+        }));
+      }
     } else {
       console.warn("Cliente não encontrado para ID:", clientId);
     }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.osNumber.trim()) {
+      newErrors.osNumber = "Número da OS é obrigatório";
+    }
+    if (!selectedClientId) {
+      newErrors.clientId = "Selecione um cliente";
+    }
+    if (!formData.clientName.trim()) {
+      newErrors.clientName = "Nome do cliente é obrigatório";
+    }
+    if (!formData.clientEmail.trim()) {
+      newErrors.clientEmail = "E-mail do cliente é obrigatório";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clientEmail)) {
+      newErrors.clientEmail = "E-mail inválido";
+    }
+    if (!formData.serviceType.trim()) {
+      newErrors.serviceType = "Tipo de serviço é obrigatório";
+    }
+    if (!formData.startDateTime) {
+      newErrors.startDateTime = "Data e hora de início é obrigatória";
+    }
+    if (!formData.endDateTime) {
+      newErrors.endDateTime = "Data e hora de término é obrigatória";
+    }
+    if (formData.startDateTime && formData.endDateTime) {
+      const start = new Date(formData.startDateTime);
+      const end = new Date(formData.endDateTime);
+      if (end <= start) {
+        newErrors.endDateTime = "Data de término deve ser posterior à data de início";
+      }
+    }
+    if (formData.interval) {
+      const intervalNum = parseInt(formData.interval);
+      if (isNaN(intervalNum) || intervalNum < 0) {
+        newErrors.interval = "Intervalo deve ser um número positivo";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const calculateTotalHours = () => {
@@ -112,35 +171,13 @@ export default function ServiceOrderForm() {
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error("Por favor, corrija os erros no formulário");
+      return;
+    }
+
     setLoading(true);
     try {
-      // Validar campos obrigatórios
-      if (!formData.osNumber.trim()) {
-        toast.error("Número da OS não foi gerado. Recarregue a página.");
-        setLoading(false);
-        return;
-      }
-      if (!formData.clientName.trim()) {
-        toast.error("Nome do cliente é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.clientEmail.trim()) {
-        toast.error("E-mail do cliente é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.serviceType.trim()) {
-        toast.error("Tipo de serviço é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.startDateTime) {
-        toast.error("Data e hora de início é obrigatória");
-        setLoading(false);
-        return;
-      }
-
       const totalHours = calculateTotalHours();
 
       await createOSMutation.mutateAsync({
@@ -156,7 +193,7 @@ export default function ServiceOrderForm() {
         description: formData.description,
       });
 
-      toast.success("Ordem de Serviço salva com sucesso!");
+      toast.success("✅ Ordem de Serviço salva com sucesso!");
       setFormData({
         osNumber: nextOSNumber || "",
         clientName: "",
@@ -172,11 +209,11 @@ export default function ServiceOrderForm() {
       console.error("Erro ao salvar OS:", error);
       
       if (error.message?.includes("Duplicate") || error.message?.includes("UNIQUE")) {
-        toast.error("Este numero de OS ja existe. Use outro numero.");
+        toast.error("❌ Este número de OS já existe. Use outro número.");
       } else if (error.message?.includes("email")) {
-        toast.error("E-mail invalido ou ja existe.");
+        toast.error("❌ E-mail inválido ou já existe.");
       } else {
-        toast.error(`Erro ao salvar: ${error.message || "Erro desconhecido"}`);
+        toast.error(`❌ Erro ao salvar: ${error.message || "Erro desconhecido"}`);
       }
     } finally {
       setLoading(false);
@@ -184,35 +221,18 @@ export default function ServiceOrderForm() {
   };
 
   const handleSend = async () => {
+    if (!validateForm()) {
+      toast.error("Por favor, corrija os erros no formulário");
+      return;
+    }
+
+    setShowConfirmation(true);
+  };
+
+  const confirmSend = async () => {
+    setShowConfirmation(false);
     setLoading(true);
     try {
-      // Validar campos obrigatórios
-      if (!formData.osNumber.trim()) {
-        toast.error("Número da OS não foi gerado. Recarregue a página.");
-        setLoading(false);
-        return;
-      }
-      if (!formData.clientName.trim()) {
-        toast.error("Nome do cliente é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.clientEmail.trim()) {
-        toast.error("E-mail do cliente é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.serviceType.trim()) {
-        toast.error("Tipo de serviço é obrigatório");
-        setLoading(false);
-        return;
-      }
-      if (!formData.startDateTime) {
-        toast.error("Data e hora de início é obrigatória");
-        setLoading(false);
-        return;
-      }
-
       const totalHours = calculateTotalHours();
 
       const result = await createOSMutation.mutateAsync({
@@ -228,8 +248,7 @@ export default function ServiceOrderForm() {
         description: formData.description,
       });
 
-      // TODO: Integrar envio de e-mail
-      toast.success("Ordem de Serviço enviada com sucesso!");
+      toast.success("✅ Ordem de Serviço enviada com sucesso!");
       setFormData({
         osNumber: nextOSNumber || "",
         clientName: "",
@@ -246,11 +265,11 @@ export default function ServiceOrderForm() {
       console.error("Erro ao enviar OS:", error);
       
       if (error.message?.includes("Duplicate") || error.message?.includes("UNIQUE")) {
-        toast.error("Este numero de OS ja existe. Use outro numero.");
+        toast.error("❌ Este número de OS já existe. Use outro número.");
       } else if (error.message?.includes("email")) {
-        toast.error("E-mail invalido ou ja existe.");
+        toast.error("❌ E-mail inválido ou já existe.");
       } else {
-        toast.error(`Erro ao enviar: ${error.message || "Erro desconhecido"}`);
+        toast.error(`❌ Erro ao enviar: ${error.message || "Erro desconhecido"}`);
       }
     } finally {
       setLoading(false);
@@ -291,8 +310,9 @@ export default function ServiceOrderForm() {
                 value={formData.osNumber}
                 onChange={handleInputChange}
                 placeholder={nextOSNumber || "Ex: OS-2026-0001"}
-                className="font-semibold"
+                className={`font-semibold ${errors.osNumber ? "border-red-500" : ""}`}
               />
+              {errors.osNumber && <p className="text-red-500 text-sm mt-1">{errors.osNumber}</p>}
             </div>
 
             {/* Seleção de Cliente */}
@@ -301,7 +321,7 @@ export default function ServiceOrderForm() {
                 Selecionar Cliente *
               </Label>
               <Select value={selectedClientId} onValueChange={handleClientSelect}>
-                <SelectTrigger>
+                <SelectTrigger className={errors.clientId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Escolha um cliente cadastrado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -312,9 +332,10 @@ export default function ServiceOrderForm() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.clientId && <p className="text-red-500 text-sm mt-1">{errors.clientId}</p>}
             </div>
 
-            {/* Cliente - Informações */}
+            {/* Nome e E-mail do Cliente */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="block text-sm font-medium text-foreground mb-2">
@@ -326,7 +347,9 @@ export default function ServiceOrderForm() {
                   value={formData.clientName}
                   onChange={handleInputChange}
                   placeholder="Preenchido automaticamente"
+                  className={errors.clientName ? "border-red-500" : ""}
                 />
+                {errors.clientName && <p className="text-red-500 text-sm mt-1">{errors.clientName}</p>}
               </div>
               <div>
                 <Label className="block text-sm font-medium text-foreground mb-2">
@@ -338,7 +361,9 @@ export default function ServiceOrderForm() {
                   value={formData.clientEmail}
                   onChange={handleInputChange}
                   placeholder="Preenchido automaticamente"
+                  className={errors.clientEmail ? "border-red-500" : ""}
                 />
+                {errors.clientEmail && <p className="text-red-500 text-sm mt-1">{errors.clientEmail}</p>}
               </div>
             </div>
 
@@ -353,8 +378,10 @@ export default function ServiceOrderForm() {
                 value={formData.serviceType}
                 onChange={handleInputChange}
                 placeholder="Ex: Consultoria TOTVS"
+                className={errors.serviceType ? "border-red-500" : ""}
                 required
               />
+              {errors.serviceType && <p className="text-red-500 text-sm mt-1">{errors.serviceType}</p>}
             </div>
 
             {/* Data e Hora de Início */}
@@ -368,8 +395,10 @@ export default function ServiceOrderForm() {
                   name="startDateTime"
                   value={formData.startDateTime}
                   onChange={handleInputChange}
+                  className={errors.startDateTime ? "border-red-500" : ""}
                   required
                 />
+                {errors.startDateTime && <p className="text-red-500 text-sm mt-1">{errors.startDateTime}</p>}
               </div>
               <div>
                 <Label className="block text-sm font-medium text-foreground mb-2">
@@ -381,7 +410,9 @@ export default function ServiceOrderForm() {
                   value={formData.interval}
                   onChange={handleInputChange}
                   placeholder="Ex: 60 (será descontado do total)"
+                  className={errors.interval ? "border-red-500" : ""}
                 />
+                {errors.interval && <p className="text-red-500 text-sm mt-1">{errors.interval}</p>}
               </div>
             </div>
 
@@ -395,8 +426,10 @@ export default function ServiceOrderForm() {
                 name="endDateTime"
                 value={formData.endDateTime}
                 onChange={handleInputChange}
+                className={errors.endDateTime ? "border-red-500" : ""}
                 required
               />
+              {errors.endDateTime && <p className="text-red-500 text-sm mt-1">{errors.endDateTime}</p>}
             </div>
 
             {/* Total de Horas (Calculado) */}
@@ -424,7 +457,7 @@ export default function ServiceOrderForm() {
             <div className="flex gap-4 pt-6">
               <Button
                 onClick={handleSave}
-                disabled={loading || !formData.clientName || !formData.clientEmail || !formData.serviceType || !formData.startDateTime || !formData.endDateTime}
+                disabled={loading || Object.keys(errors).length > 0}
                 variant="outline"
                 className="flex-1"
               >
@@ -432,12 +465,46 @@ export default function ServiceOrderForm() {
               </Button>
               <Button
                 onClick={handleSend}
-                disabled={loading || !formData.clientName || !formData.clientEmail || !formData.serviceType || !formData.startDateTime || !formData.endDateTime}
+                disabled={loading || Object.keys(errors).length > 0}
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
                 {loading ? "Enviando..." : "Enviar para Cliente"}
               </Button>
             </div>
+
+            {/* Modal de Confirmação */}
+            {showConfirmation && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <Card className="w-96">
+                  <CardHeader className="bg-gradient-to-r from-red-500 to-red-700 text-white">
+                    <CardTitle>Confirmar Envio</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <p className="mb-4">Tem certeza que deseja enviar esta Ordem de Serviço para o cliente?</p>
+                    <p className="text-sm text-gray-600 mb-6">
+                      <strong>Cliente:</strong> {formData.clientName}<br />
+                      <strong>E-mail:</strong> {formData.clientEmail}<br />
+                      <strong>Total de Horas:</strong> {calculateTotalHours()} horas
+                    </p>
+                    <div className="flex gap-4">
+                      <Button
+                        onClick={() => setShowConfirmation(false)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={confirmSend}
+                        className="flex-1 bg-red-600 hover:bg-red-700"
+                      >
+                        Confirmar Envio
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
