@@ -89,7 +89,7 @@ export default function ServiceOrderForm() {
 
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
-    const selectedClient = clients?.find((c) => c.id === parseInt(clientId));
+    const selectedClient = clients?.find((c) => c.id.toString() === clientId);
     if (selectedClient) {
       console.log("Cliente selecionado:", selectedClient);
       setFormData((prev) => ({
