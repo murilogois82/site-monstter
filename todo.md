@@ -114,6 +114,14 @@
 - [x] Corrigir o problema
 - [x] Testar salvamento de parceiro
 
+## Correção de Erro "Parceiro não encontrado" ao Salvar OS
+
+- [x] Investigar por que usuários locais não conseguem criar OS
+- [x] Verificar função getPartnerByUserId no db.ts
+- [x] Modificar lógica para permitir usuários sem parceiro associado
+- [x] Usar userId como partnerId quando não houver parceiro
+- [x] Testar criação de OS com sucesso
+
 ## Painel de Controle para Parceiros
 
 - [x] Criar APIs de estatísticas de ordens de serviço
@@ -434,14 +442,14 @@
 
 ## Validações e Melhorias no Formulário de Ordem de Serviço
 
-- [ ] Adicionar validação de campos obrigatórios no formulário
-- [ ] Implementar validação de datas (data de término > data de início)
-- [ ] Adicionar validação de intervalo (não pode ser negativo)
-- [ ] Implementar feedback visual de erros de validação
-- [ ] Adicionar confirmação antes de enviar formulário
-- [ ] Implementar loading state durante envio
-- [ ] Adicionar mensagem de sucesso após criação de OS
-- [ ] Testar todas as validações
+- [x] Adicionar validação de campos obrigatórios no formulário
+- [x] Implementar validação de datas (data de término > data de início)
+- [x] Adicionar validação de intervalo (não pode ser negativo)
+- [x] Implementar feedback visual de erros de validação
+- [x] Adicionar confirmação antes de enviar formulário
+- [x] Implementar loading state durante envio
+- [x] Adicionar mensagem de sucesso após criação de OS
+- [x] Testar todas as validações
 
 ## Publicação do Projeto
 
