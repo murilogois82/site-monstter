@@ -372,15 +372,31 @@ export default function ServiceOrderForm() {
               <Label className="block text-sm font-medium text-foreground mb-2">
                 Tipo de Serviço *
               </Label>
-              <Input
-                type="text"
-                name="serviceType"
-                value={formData.serviceType}
-                onChange={handleInputChange}
-                placeholder="Ex: Consultoria TOTVS"
-                className={errors.serviceType ? "border-red-500" : ""}
-                required
-              />
+              <Select value={formData.serviceType} onValueChange={(value) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  serviceType: value,
+                }));
+                if (errors.serviceType) {
+                  setErrors((prev) => ({
+                    ...prev,
+                    serviceType: "",
+                  }));
+                }
+              }}>
+                <SelectTrigger className={errors.serviceType ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Selecione um tipo de serviço" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Consultoria TOTVS ERP">Consultoria TOTVS ERP</SelectItem>
+                  <SelectItem value="Implementação">Implementação</SelectItem>
+                  <SelectItem value="Suporte Técnico">Suporte Técnico</SelectItem>
+                  <SelectItem value="Treinamento">Treinamento</SelectItem>
+                  <SelectItem value="Auditoria">Auditoria</SelectItem>
+                  <SelectItem value="Customização">Customização</SelectItem>
+                  <SelectItem value="Integração">Integração</SelectItem>
+                </SelectContent>
+              </Select>
               {errors.serviceType && <p className="text-red-500 text-sm mt-1">{errors.serviceType}</p>}
             </div>
 
