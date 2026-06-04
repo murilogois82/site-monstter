@@ -1,0 +1,2 @@
+DROP TABLE `service_types`;--> statement-breakpoint
+ALTER TABLE `service_orders` MODIFY COLUMN `serviceType` enum('Consultoria TOTVS ERP','Implementação','Suporte Técnico','Treinamento','Auditoria','Customização','Integração') NOT NULL;

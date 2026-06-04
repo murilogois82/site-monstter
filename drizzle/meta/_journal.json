@@ -29,6 +29,20 @@
       "when": 1774660001105,
       "tag": "0003_uneven_smiling_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1780542020092,
+      "tag": "0004_smart_grim_reaper",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1780542139394,
+      "tag": "0005_brave_ozymandias",
+      "breakpoints": true
     }
   ]
 }
