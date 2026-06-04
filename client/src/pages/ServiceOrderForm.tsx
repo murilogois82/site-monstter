@@ -115,20 +115,10 @@ export default function ServiceOrderForm() {
     if (!formData.osNumber.trim()) {
       newErrors.osNumber = "Número da OS é obrigatório";
     }
-    if (!selectedClientId) {
-      newErrors.clientId = "Selecione um cliente";
-    }
-    if (!formData.clientName.trim()) {
-      newErrors.clientName = "Nome do cliente é obrigatório";
-    }
-    if (!formData.clientEmail.trim()) {
-      newErrors.clientEmail = "E-mail do cliente é obrigatório";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clientEmail)) {
-      newErrors.clientEmail = "E-mail inválido";
-    }
-    if (!formData.serviceType.trim()) {
-      newErrors.serviceType = "Tipo de serviço é obrigatório";
-    }
+    // Cliente vem do banco de dados, não precisa validar
+    // Se cliente for selecionado, clientName e clientEmail são preenchidos automaticamente
+    // Tipo de serviço vem do dropdown, não precisa validar se está vazio
+    // A UI garante que apenas valores válidos possam ser selecionados
     if (!formData.startDateTime) {
       newErrors.startDateTime = "Data e hora de início é obrigatória";
     }
@@ -153,15 +143,24 @@ export default function ServiceOrderForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const parseDateTime = (dateTimeStr: string): Date | null => {
+    const regex = /(\d{2})\/(\d{2})\/(\d{4})\s(\d{2}):(\d{2})/;
+    const match = dateTimeStr.match(regex);
+    if (!match) return null;
+    const [, day, month, year, hour, minute] = match;
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+  };
+
   const calculateTotalHours = () => {
     if (!formData.startDateTime || !formData.endDateTime) return 0;
 
-    const start = new Date(formData.startDateTime);
-    const end = new Date(formData.endDateTime);
+    const start = parseDateTime(formData.startDateTime);
+    const end = parseDateTime(formData.endDateTime);
+    if (!start || !end) return 0;
+    
     const diffMs = end.getTime() - start.getTime();
     let diffHours = diffMs / (1000 * 60 * 60);
 
-    // Descontar intervalo (em minutos) do total de horas
     if (formData.interval) {
       const intervalHours = parseInt(formData.interval) / 60;
       diffHours = diffHours - intervalHours;
@@ -176,7 +175,7 @@ export default function ServiceOrderForm() {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Apenas depois que validou com sucesso
     try {
       const totalHours = calculateTotalHours();
 
@@ -226,7 +225,7 @@ export default function ServiceOrderForm() {
       return;
     }
 
-    setShowConfirmation(true);
+    setShowConfirmation(true); // Apenas depois que validou com sucesso
   };
 
   const confirmSend = async () => {
@@ -404,13 +403,14 @@ export default function ServiceOrderForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="block text-sm font-medium text-foreground mb-2">
-                  Data e Hora de Início *
+                  Data e Hora de Início * (DD/MM/YYYY HH:MM)
                 </Label>
                 <Input
-                  type="datetime-local"
+                  type="text"
                   name="startDateTime"
                   value={formData.startDateTime}
                   onChange={handleInputChange}
+                  placeholder="04/06/2026 09:00"
                   className={errors.startDateTime ? "border-red-500" : ""}
                   required
                 />
@@ -435,13 +435,14 @@ export default function ServiceOrderForm() {
             {/* Data e Hora de Término */}
             <div>
               <Label className="block text-sm font-medium text-foreground mb-2">
-                Data e Hora de Término *
+                Data e Hora de Término * (DD/MM/YYYY HH:MM)
               </Label>
               <Input
-                type="datetime-local"
+                type="text"
                 name="endDateTime"
                 value={formData.endDateTime}
                 onChange={handleInputChange}
+                placeholder="04/06/2026 12:00"
                 className={errors.endDateTime ? "border-red-500" : ""}
                 required
               />

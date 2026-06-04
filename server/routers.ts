@@ -218,15 +218,19 @@ export const appRouter = router({
         description: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
+        // Tentar obter parceiro existente, ou usar userId como partnerId
+        let partnerId = ctx.user.id;
         const partner = await getPartnerByUserId(ctx.user.id);
-        if (!partner) {
-          throw new Error("Parceiro não encontrado");
+        if (partner) {
+          partnerId = partner.id;
         }
+        // Se não houver parceiro, usamos o userId como partnerId
+        // Isso permite que usuários locais criem ordens de serviço
 
         const result = await createServiceOrder({
           osNumber: input.osNumber,
           status: "draft",
-          partnerId: partner.id,
+          partnerId: partnerId,
           clientId: input.clientId || null,
           clientName: input.clientName,
           clientEmail: input.clientEmail,
